@@ -16,39 +16,36 @@ public class PriceProcessingImpl implements PriceProcessing {
 
         switch (typesOfPriceProcessing) {
             case MEDIAN -> {
-                // Сортируем список цен
                 List<Integer> sortedList = quickSort(integersPrice, 0, integersPrice.size() - 1);
-                int listSize = sortedList.size() / 2;
-                // Если количество элементов нечетное, медиана — это средний элемент
-                if (sortedList.size() % 2 == 1) {
-                    return (float) sortedList.get(listSize);
+                int size = sortedList.size();
+                if (size % 2 == 1) {
+                    // Непарное количество элементов, медиана — это средний элемент
+                    return sortedList.get(size / 2);
                 } else {
-                    // Если количество элементов четное, медиана — это среднее значение двух центральных элементов
-                    int number1 = listSize;
-                    int number2 = number1 - 1;
-                    return (float) (sortedList.get(number1) + sortedList.get(number2)) / 2;
+                    // Парное количество элементов, медиана — это среднее значение двух центральных элементов
+                    int midIndex1 = size / 2;
+                    int midIndex2 = midIndex1 - 1;
+                    return (sortedList.get(midIndex1) + sortedList.get(midIndex2)) / 2.0f;
                 }
             }
             case AVERAGE_PRICE -> {
                 // Вычисляем среднюю цену
-                int result = 0;
-                for (Integer integerPrice : integersPrice) {
-                    result += integerPrice;
-                }
-                return (float) result / integersPrice.size();
+                return (float) integersPrice.stream()
+                        .mapToInt(Integer::intValue)
+                        .average()
+                        .orElseThrow(() -> new IllegalStateException("Unexpected empty list"));
             }
             default -> throw new IllegalArgumentException("Unsupported price processing type");
         }
     }
 
+
     //Из каждого билета берём только цену для последующей обработки
     @Override
     public List<Integer> getEveryPrice(List<Ticket> tickets) {
-        ArrayList<Integer> everyPriceList = new ArrayList<>();
-        for (Ticket ticket : tickets) {
-            everyPriceList.add(ticket.getPrice());
-        }
-        return everyPriceList;
+        return tickets.stream()
+                .map(Ticket::getPrice)
+                .collect(Collectors.toList());
     }
 
     public List<Integer> quickSort(List<Integer> integers, int from, int to) {
@@ -62,12 +59,12 @@ public class PriceProcessingImpl implements PriceProcessing {
         return integers;
     }
 
-
     public int partition(List<Integer> list, int from, int to) {
         int leftIndex = from;
         int rightIndex = to;
 
-        int pivot = list.get(from); // Выбираем опорный элемент
+        // Выбираем опорный элемент (первый элемент подмассива)
+        int pivot = list.get(from);
 
         while (leftIndex <= rightIndex) {
             // Двигаем левый указатель вправо, пока не найдем элемент больше или равный опорному
@@ -85,11 +82,11 @@ public class PriceProcessingImpl implements PriceProcessing {
                 rightIndex--;
             }
         }
-        return leftIndex; // Возвращаем индекс, где элементы больше опорного должны начать
+        // Возвращаем индекс, где элементы больше опорного должны начать
+        return leftIndex;
     }
 
-
-    //Меняем значения двух элементов в списке.
+    // Меняем значения двух элементов в списке.
     public void swap(List<Integer> integerList, int index1, int index2) {
         int temporary = integerList.get(index1);
         integerList.set(index1, integerList.get(index2));
@@ -99,11 +96,12 @@ public class PriceProcessingImpl implements PriceProcessing {
 
     //Фильтрует билеты, чтобы найти те, которые либо из name1 в name2, либо наоборот.
     //То есть либо из "VVO" в "TLV" либо наоборот
+    @Override
     public List<Ticket> getTicketsListBetween(List<Ticket> jsonTickets, String name1, String name2) {
         return jsonTickets.stream()
                 .filter(ticket ->
-                        name1.equals(ticket.getOrigin()) && name2.equals(ticket.getDestination()) ||
-                                name2.equals(ticket.getOrigin()) && name1.equals(ticket.getDestination()))
+                        (name1.equals(ticket.getOrigin()) && name2.equals(ticket.getDestination())) ||
+                                (name2.equals(ticket.getOrigin()) && name1.equals(ticket.getDestination())))
                 .collect(Collectors.toList());
     }
 

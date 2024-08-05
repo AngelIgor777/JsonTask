@@ -22,8 +22,12 @@ public class CalculationResult {
         //Получаем Минимальное время полета между городами
         Map<String, LocalTime> minTimeForCarriers = timeProcessing.minTimeFlyPerCarrier(tickets);
 
-        //Получаем Разницу между средней ценой  и медианой
-        List<Integer> priceList = priceProcessing.getEveryPrice(tickets);
+        //Получаем все билеты между городами Владивосток и Тель-Авив
+        List<Ticket> ticketsListBetween = priceProcessing.getTicketsListBetween(tickets, "VVO", "TLV");
+        //Получаем все цены авиаперевозчиков между этими городами
+        List<Integer> priceList = priceProcessing.getEveryPrice(ticketsListBetween);
+
+        //Вычисление средней цены и медианы
         float avgPrice = priceProcessing.getResultOf(TypesOfPriceProcessing.AVERAGE_PRICE, priceList);
         float medianPrice = priceProcessing.getResultOf(TypesOfPriceProcessing.MEDIAN, priceList);
 
